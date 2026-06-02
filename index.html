@@ -49,6 +49,60 @@
     outline: none; border-color: var(--mmp); box-shadow: 0 0 0 3px rgba(46,179,70,0.12);
   }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Slider UX ------------------------------------------------ */
+  .input-row {
+    display: grid; grid-template-columns: 1fr 72px; gap: 12px;
+    align-items: center; margin-bottom: 4px;
+  }
+  .input-row input[type="number"] {
+    font-weight: 600; text-align: center;
+    font-variant-numeric: tabular-nums; padding: 8px 6px;
+  }
+  .slider-wrap { position: relative; padding: 6px 0 18px; }
+  input[type="range"] {
+    width: 100%; height: 8px; border-radius: 4px; outline: none;
+    -webkit-appearance: none; appearance: none; margin: 0;
+    background: linear-gradient(to right,
+      #B8D6E8 0%, #B8D6E8 var(--cutoff, 75%),
+      #F8BCBC var(--cutoff, 75%), #F8BCBC 100%);
+    cursor: pointer;
+  }
+  /* MoCA — lower is worse, so the red zone is at the LEFT */
+  input[type="range"].inverted {
+    background: linear-gradient(to right,
+      #F8BCBC 0%, #F8BCBC var(--cutoff, 25%),
+      #B8D6E8 var(--cutoff, 25%), #B8D6E8 100%);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px; background: #1F2A36;
+    border-radius: 50%; cursor: pointer; border: 3px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px; height: 20px; background: #1F2A36;
+    border-radius: 50%; cursor: pointer; border: 3px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  }
+  .cutoff-tick {
+    position: absolute; top: 2px; bottom: 14px; width: 2px;
+    background: #E63946; pointer-events: none;
+    transform: translateX(-1px);
+  }
+  .cutoff-tick::after {
+    content: attr(data-label);
+    position: absolute; top: 100%; left: 50%;
+    transform: translateX(-50%); padding-top: 2px;
+    font-size: 10px; color: #E63946; font-weight: 600;
+    white-space: nowrap;
+  }
+  .scale-ends {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: #95A0AD;
+    font-variant-numeric: tabular-nums;
+  }
   .toggle-group {
     display: inline-flex; background: var(--bg); border-radius: 6px; padding: 3px;
     margin-bottom: 4px;
@@ -161,11 +215,25 @@
 
   <label>MDS-UPDRS Part II total
     <span class="hint">(0–52, patient-reported motor ADL)</span></label>
-  <input type="number" id="np2" min="0" max="52" step="any" placeholder="e.g. 7">
+  <div class="input-row">
+    <div class="slider-wrap">
+      <input type="range" id="np2_slider" min="0" max="52" step="1" value="0">
+      <div class="cutoff-tick" id="np2_cutoff" data-label="P75: —"></div>
+      <div class="scale-ends"><span>0</span><span>52</span></div>
+    </div>
+    <input type="number" id="np2" min="0" max="52" step="any" placeholder="—">
+  </div>
 
   <label>MDS-UPDRS Part III off-medication total
     <span class="hint">(0–132; or untreated visit)</span></label>
-  <input type="number" id="np3off" min="0" max="132" step="any" placeholder="e.g. 22">
+  <div class="input-row">
+    <div class="slider-wrap">
+      <input type="range" id="np3off_slider" min="0" max="132" step="1" value="0">
+      <div class="cutoff-tick" id="np3off_cutoff" data-label="P75: —"></div>
+      <div class="scale-ends"><span>0</span><span>132</span></div>
+    </div>
+    <input type="number" id="np3off" min="0" max="132" step="any" placeholder="—">
+  </div>
 
   <label>PIGD / TD ratio
     <span class="hint">(Stebbins 2013; winsorized at 4.40)</span></label>
@@ -174,7 +242,14 @@
     <button data-mode="components">Compute from raw items</button>
   </div>
   <div id="pigdRatioMode">
-    <input type="number" id="pigdRatio" min="0" step="any" placeholder="e.g. 0.80">
+  <div class="input-row">
+    <div class="slider-wrap">
+      <input type="range" id="pigdRatio_slider" min="0" max="4.4" step="0.01" value="0">
+      <div class="cutoff-tick" id="pigdRatio_cutoff" data-label="P75: —"></div>
+      <div class="scale-ends"><span>0</span><span>4.4</span></div>
+    </div>
+    <input type="number" id="pigdRatio" min="0" max="4.4" step="any" placeholder="—">
+  </div>
   </div>
   <div id="pigdComponentMode" style="display:none">
     <div class="row2">
@@ -193,15 +268,36 @@
 
   <label>RBDSQ-13 total
     <span class="hint">(0–13; 13-item REM Sleep Behavior Disorder Screening Questionnaire)</span></label>
-  <input type="number" id="rbd" min="0" max="13" step="any" placeholder="e.g. 4">
+  <div class="input-row">
+    <div class="slider-wrap">
+      <input type="range" id="rbd_slider" min="0" max="13" step="1" value="0">
+      <div class="cutoff-tick" id="rbd_cutoff" data-label="P75: —"></div>
+      <div class="scale-ends"><span>0</span><span>13</span></div>
+    </div>
+    <input type="number" id="rbd" min="0" max="13" step="any" placeholder="—">
+  </div>
 
   <label>SCOPA-AUT total
     <span class="hint">(0–69; Scales for Outcomes in PD – Autonomic)</span></label>
-  <input type="number" id="scopa" min="0" max="69" step="any" placeholder="e.g. 10">
+  <div class="input-row">
+    <div class="slider-wrap">
+      <input type="range" id="scopa_slider" min="0" max="69" step="1" value="0">
+      <div class="cutoff-tick" id="scopa_cutoff" data-label="P75: —"></div>
+      <div class="scale-ends"><span>0</span><span>69</span></div>
+    </div>
+    <input type="number" id="scopa" min="0" max="69" step="any" placeholder="—">
+  </div>
 
   <label>MoCA total
     <span class="hint">(0–30; Montreal Cognitive Assessment, lower = worse)</span></label>
-  <input type="number" id="moca" min="0" max="30" step="any" placeholder="e.g. 27">
+  <div class="input-row">
+    <div class="slider-wrap">
+      <input type="range" id="moca_slider" class="inverted" min="0" max="30" step="1" value="0">
+      <div class="cutoff-tick" id="moca_cutoff" data-label="P25: —"></div>
+      <div class="scale-ends"><span>0</span><span>30</span></div>
+    </div>
+    <input type="number" id="moca" min="0" max="30" step="any" placeholder="—">
+  </div>
 </div>
 
 <!-- ============ RIGHT: OUTPUT ============ -->
@@ -1547,6 +1643,7 @@ function computePigdRatio() {
 // Main update
 // =====================================================================
 function update() {
+  repositionCutoffTicks();
   const year = String(parseInt(document.getElementById("year").value, 10));
   const ref = REF[year];
   if (!ref) return;
@@ -1658,6 +1755,67 @@ function makeRow(label, x, pct, stats, worstDir, isWorst) {
     <div class="flag ${isWorst ? 'worst' : ''}">${isWorst ? 'WORST' : 'normal'}</div>`;
   return div;
 }
+
+
+// =====================================================================
+// Slider ↔ number sync, and per-year cutoff-tick positioning
+// =====================================================================
+// Each pair: { numId, sliderId, cutoffId, scaleCol, inverted, vmin, vmax }
+const SLIDER_PAIRS = [
+  { num: "np2",       slider: "np2_slider",       cutoff: "np2_cutoff",       col: "NP2PTOT",              inv: false, vmin: 0, vmax: 52  },
+  { num: "np3off",    slider: "np3off_slider",    cutoff: "np3off_cutoff",    col: "NP3TOT_OFF_UNTREATED", inv: false, vmin: 0, vmax: 132 },
+  { num: "pigdRatio", slider: "pigdRatio_slider", cutoff: "pigdRatio_cutoff", col: "pigd_td_ratio",        inv: false, vmin: 0, vmax: 4.40 },
+  { num: "rbd",       slider: "rbd_slider",       cutoff: "rbd_cutoff",       col: "RBDSQ_13item",         inv: false, vmin: 0, vmax: 13  },
+  { num: "scopa",     slider: "scopa_slider",     cutoff: "scopa_cutoff",     col: "SCAU_TOTAL",           inv: false, vmin: 0, vmax: 69  },
+  { num: "moca",      slider: "moca_slider",      cutoff: "moca_cutoff",      col: "MCATOT",               inv: true,  vmin: 0, vmax: 30  },
+];
+
+// Bidirectional sync: slider → number, number → slider
+SLIDER_PAIRS.forEach(s => {
+  const numEl    = document.getElementById(s.num);
+  const sliderEl = document.getElementById(s.slider);
+  if (!numEl || !sliderEl) return;
+  let syncing = false;
+  sliderEl.addEventListener("input", () => {
+    if (syncing) return;
+    syncing = true;
+    numEl.value = sliderEl.value;
+    syncing = false;
+    update();
+  });
+  numEl.addEventListener("input", () => {
+    if (syncing) return;
+    const v = parseFloat(numEl.value);
+    if (Number.isFinite(v)) {
+      syncing = true;
+      sliderEl.value = Math.max(s.vmin, Math.min(s.vmax, v));
+      syncing = false;
+    }
+    update();
+  });
+});
+
+// Move the red cutoff tick to the year-specific P75 (or P25 for MoCA) on every update
+function repositionCutoffTicks() {
+  const year = String(parseInt(document.getElementById("year").value, 10));
+  const ref = REF[year];
+  if (!ref) return;
+  SLIDER_PAIRS.forEach(s => {
+    const stats = ref[s.col]; if (!stats) return;
+    const tick = document.getElementById(s.cutoff);
+    const slider = document.getElementById(s.slider);
+    if (!tick || !slider) return;
+    const cv = stats.cutoff_value;
+    const pct = ((cv - s.vmin) / (s.vmax - s.vmin)) * 100;
+    const clamped = Math.max(0, Math.min(100, pct));
+    tick.style.left = clamped + "%";
+    tick.setAttribute("data-label", stats.cutoff_pct + " = " + cv.toFixed(stats.cutoff_value < 1 ? 2 : 1));
+    // Also set the slider track gradient stop so the red "worst" zone matches
+    slider.style.setProperty("--cutoff", clamped + "%");
+  });
+}
+// Hook into year change + initial render
+document.getElementById("year").addEventListener("change", repositionCutoffTicks);
 
 // Wire up listeners
 ["year","np2","np3off","pigdRatio","pigdRaw","tdRaw","rbd","scopa","moca"]
