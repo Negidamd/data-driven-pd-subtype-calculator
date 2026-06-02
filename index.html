@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data-Driven PD Subtype Calculator — Disease-Duration Percentiles</title>
+<style>
+  :root {
+    --dm:      #E63946;
+    --im:      #FFC93C;
+    --mmp:     #2EB346;
+    --neutral: #5B6B7A;
+    --bg:      #F7F9FB;
+    --card:    #FFFFFF;
+    --border:  #E1E5EA;
+    --ink:     #1F2A36;
+    --muted:   #6B7785;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: var(--bg); color: var(--ink); margin: 0; padding: 0;
+    line-height: 1.5;
+  }
+  header {
+    background: linear-gradient(135deg, #2E3B4E 0%, #1F2A36 100%);
+    color: #fff; padding: 28px 36px; border-bottom: 4px solid var(--mmp);
+  }
+  header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
+  header .sub { font-size: 13px; opacity: 0.85; }
+  main { max-width: 1100px; margin: 24px auto; padding: 0 24px; }
+  .layout { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 24px; }
+  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card h2 { margin: 0 0 14px; font-size: 16px; font-weight: 600;
+              padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  label { display: block; font-size: 13px; color: var(--muted);
+          margin-top: 12px; margin-bottom: 4px; font-weight: 500; }
+  label .hint { color: #95A0AD; font-weight: 400; font-size: 12px; margin-left: 6px; }
+  input[type="number"], select {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 14px; font-family: inherit;
+    background: #fff; transition: border-color 0.15s;
+  }
+  input[type="number"]:focus, select:focus {
+    outline: none; border-color: var(--mmp); box-shadow: 0 0 0 3px rgba(46,179,70,0.12);
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .toggle-group {
+    display: inline-flex; background: var(--bg); border-radius: 6px; padding: 3px;
+    margin-bottom: 4px;
+  }
+  .toggle-group button {
+    background: transparent; border: none; padding: 6px 12px; font-size: 12px;
+    cursor: pointer; border-radius: 4px; color: var(--muted); font-weight: 500;
+  }
+  .toggle-group button.active {
+    background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  }
+  .subtype-box {
+    margin-top: 0; padding: 28px; border-radius: 10px; text-align: center;
+    color: #fff; transition: background 0.3s;
+  }
+  .subtype-box .label { font-size: 12px; opacity: 0.85; letter-spacing: 1.5px;
+                         text-transform: uppercase; margin-bottom: 6px; }
+  .subtype-box .value { font-size: 38px; font-weight: 700; letter-spacing: -1px; }
+  .subtype-box .expand { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+  .subtype-DM  { background: linear-gradient(135deg, #E63946 0%, #C5283D 100%); }
+  .subtype-IM  { background: linear-gradient(135deg, #F5B82E 0%, #DCA22B 100%); }
+  .subtype-MMP { background: linear-gradient(135deg, #2EB346 0%, #228B36 100%); }
+  .subtype-NA  { background: linear-gradient(135deg, #95A0AD 0%, #6B7785 100%); }
+
+  .breakdown { margin-top: 16px; }
+  .channel {
+    display: grid; grid-template-columns: 130px 1fr 110px 65px;
+    align-items: center; gap: 10px; padding: 8px 0;
+    border-bottom: 1px dotted var(--border); font-size: 13px;
+  }
+  .channel:last-child { border-bottom: none; }
+  .channel .name { color: var(--muted); font-weight: 500; }
+  .channel .bar-wrap { height: 6px; background: var(--bg); border-radius: 3px;
+                       position: relative; overflow: hidden; }
+  .channel .bar { position: absolute; top: 0; bottom: 0; left: 0;
+                  background: #7FB3D5; border-radius: 3px; transition: width 0.3s; }
+  .channel .bar.over   { background: #E63946; }
+  .channel .pct { color: var(--ink); font-size: 12px; text-align: right;
+                  font-variant-numeric: tabular-nums; }
+  .channel .flag { font-size: 11px; padding: 3px 8px; border-radius: 11px;
+                   background: var(--bg); color: var(--muted); text-align: center;
+                   font-weight: 600; }
+  .channel .flag.worst { background: #FDE2E5; color: #C5283D; }
+  .channel .cutoff-marker {
+    position: absolute; top: -2px; bottom: -2px; width: 2px;
+    background: var(--ink); opacity: 0.4;
+  }
+
+  .composite {
+    margin-top: 14px; padding: 14px; background: var(--bg); border-radius: 8px;
+    border-left: 4px solid var(--neutral);
+  }
+  .composite .row { display: flex; justify-content: space-between; font-size: 13px;
+                    margin: 3px 0; }
+  .composite .row .label { color: var(--muted); }
+  .composite .row .value { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .composite.worst { border-left-color: var(--dm); background: #FDE2E5; }
+
+  .rules-box {
+    margin-top: 16px; padding: 14px 18px; background: var(--bg); border-radius: 8px;
+    font-size: 12px; color: var(--muted); line-height: 1.6;
+  }
+  .rules-box .title { font-weight: 600; color: var(--ink); margin-bottom: 6px;
+                       font-size: 13px; }
+  .rules-box .rule { margin: 4px 0; }
+  .rules-box .rule b { color: var(--ink); }
+
+  .footer-info {
+    margin-top: 32px; padding: 20px 0 40px; font-size: 12px; color: var(--muted);
+    text-align: center; line-height: 1.7;
+  }
+  .footer-info a { color: var(--mmp); text-decoration: none; }
+  .footer-info a:hover { text-decoration: underline; }
+  .citation { font-size: 11px; margin-top: 6px; }
+
+  .warning {
+    margin-top: 12px; padding: 10px 14px; background: #FFF8E1;
+    border-left: 3px solid #F5B82E; border-radius: 4px; font-size: 12px;
+    color: #6B4F1A;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Data-Driven PD Subtype Calculator</h1>
+  <div class="sub">Disease-Duration–Specific Percentile Subtyping (DM-PD / IM-PD / MMP-PD)<br>
+       Reference: Negida et al., <i>Mov Disord Clin Pract</i>, 2026 (in revision)</div>
+</header>
+
+<main>
+<div class="layout">
+
+<!-- ============ LEFT: INPUT ============ -->
+<div class="card">
+  <h2>Patient inputs</h2>
+
+  <label>Years since PD diagnosis
+    <span class="hint">(integer 1–15; round down)</span></label>
+  <select id="year">
+    <option value="1">1 year</option><option value="2">2 years</option>
+    <option value="3">3 years</option><option value="4">4 years</option>
+    <option value="5">5 years</option><option value="6">6 years</option>
+    <option value="7">7 years</option><option value="8">8 years</option>
+    <option value="9">9 years</option><option value="10">10 years</option>
+    <option value="11">11 years</option><option value="12">12 years</option>
+    <option value="13">13 years</option><option value="14">14 years</option>
+    <option value="15">15 years</option>
+  </select>
+
+  <label>MDS-UPDRS Part II total
+    <span class="hint">(0–52, patient-reported motor ADL)</span></label>
+  <input type="number" id="np2" min="0" max="52" step="any" placeholder="e.g. 7">
+
+  <label>MDS-UPDRS Part III off-medication total
+    <span class="hint">(0–132; or untreated visit)</span></label>
+  <input type="number" id="np3off" min="0" max="132" step="any" placeholder="e.g. 22">
+
+  <label>PIGD / TD ratio
+    <span class="hint">(Stebbins 2013; winsorized at 4.40)</span></label>
+  <div class="toggle-group" id="pigdMode">
+    <button class="active" data-mode="ratio">Enter ratio directly</button>
+    <button data-mode="components">Compute from raw items</button>
+  </div>
+  <div id="pigdRatioMode">
+    <input type="number" id="pigdRatio" min="0" step="any" placeholder="e.g. 0.80">
+  </div>
+  <div id="pigdComponentMode" style="display:none">
+    <div class="row2">
+      <div>
+        <label style="margin-top:4px">PIGD sum
+          <span class="hint">(Part 2: 2.12+2.13; Part 3: 3.10+3.11+3.12, mean)</span></label>
+        <input type="number" id="pigdRaw" min="0" step="any" placeholder="e.g. 0.4">
+      </div>
+      <div>
+        <label style="margin-top:4px">Tremor sum
+          <span class="hint">(Part 2: 2.10; Part 3: 3.15–3.18, mean)</span></label>
+        <input type="number" id="tdRaw" min="0" step="any" placeholder="e.g. 0.5">
+      </div>
+    </div>
+  </div>
+
+  <label>RBDSQ-13 total
+    <span class="hint">(0–13; 13-item REM Sleep Behavior Disorder Screening Questionnaire)</span></label>
+  <input type="number" id="rbd" min="0" max="13" step="any" placeholder="e.g. 4">
+
+  <label>SCOPA-AUT total
+    <span class="hint">(0–69; Scales for Outcomes in PD – Autonomic)</span></label>
+  <input type="number" id="scopa" min="0" max="69" step="any" placeholder="e.g. 10">
+
+  <label>MoCA total
+    <span class="hint">(0–30; Montreal Cognitive Assessment, lower = worse)</span></label>
+  <input type="number" id="moca" min="0" max="30" step="any" placeholder="e.g. 27">
+</div>
+
+<!-- ============ RIGHT: OUTPUT ============ -->
+<div class="card">
+  <h2>Assigned subtype</h2>
+
+  <div id="subtypeBox" class="subtype-box subtype-NA">
+    <div class="label">Subtype</div>
+    <div class="value" id="subtypeValue">—</div>
+    <div class="expand" id="subtypeExpand">Enter all values to compute</div>
+  </div>
+
+  <div class="composite" id="compositeBox">
+    <div class="row"><span class="label">Motor composite (mean of 3 z-scores)</span>
+      <span class="value" id="motorZ">—</span></div>
+    <div class="row"><span class="label">Year-specific 75th-percentile threshold</span>
+      <span class="value" id="motorCut">—</span></div>
+    <div class="row"><span class="label">Above threshold (worst-motor)?</span>
+      <span class="value" id="worstMotor">—</span></div>
+  </div>
+
+  <div class="breakdown">
+    <h2 style="margin-top:18px">Channel-by-channel breakdown</h2>
+    <div id="breakdown"></div>
+  </div>
+
+  <div class="rules-box">
+    <div class="title">Fereshtehnejad 2017 assignment rule (year-specific)</div>
+    <div class="rule"><b>DM-PD</b> = worst-motor AND ≥ 1 non-motor worst, OR all 3 non-motor worst</div>
+    <div class="rule"><b>MMP-PD</b> = not worst-motor AND 0 non-motor worst</div>
+    <div class="rule"><b>IM-PD</b> = everything else</div>
+  </div>
+
+  <div id="warnings"></div>
+</div>
+
+</div>
+
+<div class="footer-info">
+  Percentile thresholds derived from PPMI April-2026 freeze (N=1,030 de novo idiopathic PD).<br>
+  Use restricted to <b>research and clinical-decision support</b>; not a diagnostic device.<br>
+  <span class="citation">
+    Source code &amp; data:
+    <a href="https://github.com/negidamd/data-driven-pd-subtype-calculator" target="_blank">github.com/negidamd/data-driven-pd-subtype-calculator</a>
+    &nbsp;|&nbsp; Method: Fereshtehnejad et al., <i>Brain</i> 2017
+    &nbsp;|&nbsp; Cutoff data: see <a href="https://github.com/negidamd/data-driven-pd-subtype-calculator/blob/main/T_reference_percentiles.csv">T_reference_percentiles.csv</a>
+  </span>
+</div>
+</main>
+
+<script>
+// =====================================================================
+// Reference data (per-year per-scale statistics from PPMI April-2026)
+// =====================================================================
+const REF = {
+  "1": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 772,
+      "mean": 6.625,
+      "sd": 4.532,
+      "p10": 1.61,
+      "p25": 3.0,
+      "p50": 5.9,
+      "p75": 9.0,
+      "p90": 13.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 9.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 771,
+      "mean": 22.499,
+      "sd": 9.374,
+      "p10": 12.0,
+      "p25": 16.0,
+      "p50": 21.25,
+      "p75": 28.0,
+      "p90": 35.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 28.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 815,
+      "mean": 0.863,
+      "sd": 1.219,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.44,
+      "p75": 0.88,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.88
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 766,
+      "mean": 4.045,
+      "sd": 2.88,
+      "p10": 1.0,
+      "p25": 2.0,
+      "p50": 3.0,
+      "p75": 6.0,
+      "p90": 8.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 6.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 718,
+      "mean": 10.805,
+      "sd": 6.874,
+      "p10": 3.0,
+      "p25": 6.0,
+      "p50": 10.0,
+      "p75": 14.0,
+      "p90": 20.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 14.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 802,
+      "mean": 26.905,
+      "sd": 2.481,
+      "p10": 23.0,
+      "p25": 26.0,
+      "p50": 27.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 26.0
+    }
+  },
+  "2": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 914,
+      "mean": 7.193,
+      "sd": 4.908,
+      "p10": 2.0,
+      "p25": 3.5,
+      "p50": 6.0,
+      "p75": 10.0,
+      "p90": 13.76,
+      "cutoff_pct": "75th",
+      "cutoff_value": 10.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 839,
+      "mean": 24.758,
+      "sd": 10.261,
+      "p10": 12.27,
+      "p25": 17.5,
+      "p50": 24.0,
+      "p75": 31.5,
+      "p90": 38.5,
+      "cutoff_pct": "75th",
+      "cutoff_value": 31.5
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 938,
+      "mean": 0.827,
+      "sd": 1.167,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.44,
+      "p75": 0.88,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.88
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 847,
+      "mean": 4.252,
+      "sd": 3.038,
+      "p10": 1.0,
+      "p25": 2.0,
+      "p50": 3.5,
+      "p75": 6.0,
+      "p90": 9.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 6.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 773,
+      "mean": 11.074,
+      "sd": 6.593,
+      "p10": 4.0,
+      "p25": 6.0,
+      "p50": 10.0,
+      "p75": 14.0,
+      "p90": 19.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 14.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 840,
+      "mean": 26.818,
+      "sd": 2.616,
+      "p10": 23.0,
+      "p25": 25.0,
+      "p50": 27.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "3": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 889,
+      "mean": 7.835,
+      "sd": 5.278,
+      "p10": 2.0,
+      "p25": 4.0,
+      "p50": 7.0,
+      "p75": 10.5,
+      "p90": 15.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 10.5
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 748,
+      "mean": 26.748,
+      "sd": 11.03,
+      "p10": 14.0,
+      "p25": 19.0,
+      "p50": 25.5,
+      "p75": 33.0,
+      "p90": 42.15,
+      "cutoff_pct": "75th",
+      "cutoff_value": 33.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 909,
+      "mean": 0.816,
+      "sd": 1.161,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.4,
+      "p75": 0.88,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.88
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 809,
+      "mean": 4.396,
+      "sd": 3.111,
+      "p10": 1.0,
+      "p25": 2.0,
+      "p50": 4.0,
+      "p75": 6.0,
+      "p90": 9.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 6.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 734,
+      "mean": 11.802,
+      "sd": 6.872,
+      "p10": 4.0,
+      "p25": 7.0,
+      "p50": 11.0,
+      "p75": 15.0,
+      "p90": 21.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 15.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 800,
+      "mean": 26.828,
+      "sd": 2.898,
+      "p10": 23.0,
+      "p25": 26.0,
+      "p50": 27.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 26.0
+    }
+  },
+  "4": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 733,
+      "mean": 8.491,
+      "sd": 5.84,
+      "p10": 2.0,
+      "p25": 4.0,
+      "p50": 7.0,
+      "p75": 12.0,
+      "p90": 16.47,
+      "cutoff_pct": "75th",
+      "cutoff_value": 12.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 551,
+      "mean": 28.224,
+      "sd": 11.697,
+      "p10": 15.0,
+      "p25": 19.0,
+      "p50": 27.0,
+      "p75": 36.0,
+      "p90": 45.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 36.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 747,
+      "mean": 0.802,
+      "sd": 1.159,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.88,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.88
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 641,
+      "mean": 4.489,
+      "sd": 3.102,
+      "p10": 1.0,
+      "p25": 2.0,
+      "p50": 4.0,
+      "p75": 6.5,
+      "p90": 9.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 6.5
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 564,
+      "mean": 12.301,
+      "sd": 7.037,
+      "p10": 4.0,
+      "p25": 7.0,
+      "p50": 11.0,
+      "p75": 16.0,
+      "p90": 21.7,
+      "cutoff_pct": "75th",
+      "cutoff_value": 16.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 639,
+      "mean": 26.795,
+      "sd": 2.943,
+      "p10": 23.0,
+      "p25": 25.0,
+      "p50": 27.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "5": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 508,
+      "mean": 9.142,
+      "sd": 6.074,
+      "p10": 2.5,
+      "p25": 4.25,
+      "p50": 8.0,
+      "p75": 12.5,
+      "p90": 17.5,
+      "cutoff_pct": "75th",
+      "cutoff_value": 12.5
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 366,
+      "mean": 30.24,
+      "sd": 11.753,
+      "p10": 15.0,
+      "p25": 21.0,
+      "p50": 30.0,
+      "p75": 39.0,
+      "p90": 46.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 39.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 517,
+      "mean": 0.777,
+      "sd": 1.168,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.82,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.82
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 446,
+      "mean": 4.737,
+      "sd": 3.206,
+      "p10": 1.0,
+      "p25": 2.0,
+      "p50": 4.0,
+      "p75": 7.0,
+      "p90": 10.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 7.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 396,
+      "mean": 12.895,
+      "sd": 7.543,
+      "p10": 4.0,
+      "p25": 8.0,
+      "p50": 12.0,
+      "p75": 17.0,
+      "p90": 22.5,
+      "cutoff_pct": "75th",
+      "cutoff_value": 17.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 444,
+      "mean": 26.668,
+      "sd": 3.239,
+      "p10": 22.0,
+      "p25": 25.0,
+      "p50": 27.5,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "6": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 362,
+      "mean": 9.921,
+      "sd": 6.724,
+      "p10": 2.55,
+      "p25": 5.0,
+      "p50": 8.5,
+      "p75": 14.0,
+      "p90": 19.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 14.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 253,
+      "mean": 31.453,
+      "sd": 12.688,
+      "p10": 15.2,
+      "p25": 22.0,
+      "p50": 31.0,
+      "p75": 39.0,
+      "p90": 48.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 39.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 365,
+      "mean": 0.798,
+      "sd": 1.2,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 319,
+      "mean": 4.867,
+      "sd": 3.115,
+      "p10": 1.0,
+      "p25": 2.0,
+      "p50": 4.0,
+      "p75": 7.0,
+      "p90": 9.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 7.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 267,
+      "mean": 13.052,
+      "sd": 7.671,
+      "p10": 5.0,
+      "p25": 8.0,
+      "p50": 12.0,
+      "p75": 17.0,
+      "p90": 22.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 17.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 314,
+      "mean": 26.796,
+      "sd": 3.088,
+      "p10": 22.0,
+      "p25": 25.0,
+      "p50": 28.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "7": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 271,
+      "mean": 10.687,
+      "sd": 6.753,
+      "p10": 3.0,
+      "p25": 5.75,
+      "p50": 10.0,
+      "p75": 14.0,
+      "p90": 19.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 14.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 201,
+      "mean": 32.925,
+      "sd": 13.057,
+      "p10": 18.0,
+      "p25": 23.0,
+      "p50": 33.0,
+      "p75": 41.0,
+      "p90": 50.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 41.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 276,
+      "mean": 0.721,
+      "sd": 1.128,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 264,
+      "mean": 5.11,
+      "sd": 3.123,
+      "p10": 1.0,
+      "p25": 2.75,
+      "p50": 5.0,
+      "p75": 7.0,
+      "p90": 9.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 7.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 218,
+      "mean": 13.869,
+      "sd": 7.457,
+      "p10": 5.0,
+      "p25": 9.0,
+      "p50": 12.5,
+      "p75": 18.0,
+      "p90": 24.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 18.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 262,
+      "mean": 26.254,
+      "sd": 3.843,
+      "p10": 21.0,
+      "p25": 25.0,
+      "p50": 27.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "8": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 220,
+      "mean": 11.911,
+      "sd": 7.204,
+      "p10": 4.0,
+      "p25": 7.0,
+      "p50": 11.0,
+      "p75": 15.0,
+      "p90": 21.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 15.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 173,
+      "mean": 34.098,
+      "sd": 12.991,
+      "p10": 19.2,
+      "p25": 24.0,
+      "p50": 33.0,
+      "p75": 42.0,
+      "p90": 52.8,
+      "cutoff_pct": "75th",
+      "cutoff_value": 42.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 222,
+      "mean": 0.682,
+      "sd": 1.059,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 1.56,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 215,
+      "mean": 5.633,
+      "sd": 3.491,
+      "p10": 1.0,
+      "p25": 3.0,
+      "p50": 5.0,
+      "p75": 8.0,
+      "p90": 10.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 8.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 182,
+      "mean": 15.168,
+      "sd": 7.594,
+      "p10": 6.0,
+      "p25": 10.0,
+      "p50": 15.0,
+      "p75": 20.0,
+      "p90": 23.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 20.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 214,
+      "mean": 26.491,
+      "sd": 3.948,
+      "p10": 22.0,
+      "p25": 25.0,
+      "p50": 28.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "9": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 165,
+      "mean": 13.264,
+      "sd": 7.561,
+      "p10": 5.0,
+      "p25": 8.0,
+      "p50": 12.0,
+      "p75": 16.0,
+      "p90": 22.8,
+      "cutoff_pct": "75th",
+      "cutoff_value": 16.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 109,
+      "mean": 36.917,
+      "sd": 14.045,
+      "p10": 20.8,
+      "p25": 25.0,
+      "p50": 35.0,
+      "p75": 48.0,
+      "p90": 56.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 48.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 172,
+      "mean": 0.722,
+      "sd": 1.105,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 156,
+      "mean": 5.808,
+      "sd": 3.398,
+      "p10": 1.0,
+      "p25": 3.0,
+      "p50": 6.0,
+      "p75": 8.0,
+      "p90": 11.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 8.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 132,
+      "mean": 14.973,
+      "sd": 7.235,
+      "p10": 7.0,
+      "p25": 10.0,
+      "p50": 15.0,
+      "p75": 18.0,
+      "p90": 23.9,
+      "cutoff_pct": "75th",
+      "cutoff_value": 18.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 142,
+      "mean": 26.623,
+      "sd": 3.575,
+      "p10": 21.55,
+      "p25": 25.0,
+      "p50": 28.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "10": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 153,
+      "mean": 13.054,
+      "sd": 7.113,
+      "p10": 5.0,
+      "p25": 7.0,
+      "p50": 12.5,
+      "p75": 17.0,
+      "p90": 22.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 17.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 103,
+      "mean": 37.058,
+      "sd": 13.884,
+      "p10": 21.0,
+      "p25": 26.5,
+      "p50": 36.0,
+      "p75": 46.0,
+      "p90": 54.8,
+      "cutoff_pct": "75th",
+      "cutoff_value": 46.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 162,
+      "mean": 0.712,
+      "sd": 1.055,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 139,
+      "mean": 5.129,
+      "sd": 3.42,
+      "p10": 1.0,
+      "p25": 2.0,
+      "p50": 4.0,
+      "p75": 8.0,
+      "p90": 10.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 8.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 111,
+      "mean": 14.468,
+      "sd": 7.362,
+      "p10": 5.0,
+      "p25": 9.5,
+      "p50": 13.0,
+      "p75": 19.5,
+      "p90": 24.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 19.5
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 120,
+      "mean": 26.921,
+      "sd": 3.096,
+      "p10": 23.0,
+      "p25": 26.0,
+      "p50": 28.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 26.0
+    }
+  },
+  "11": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 169,
+      "mean": 13.081,
+      "sd": 7.136,
+      "p10": 5.0,
+      "p25": 8.0,
+      "p50": 12.67,
+      "p75": 17.5,
+      "p90": 21.6,
+      "cutoff_pct": "75th",
+      "cutoff_value": 17.5
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 108,
+      "mean": 39.213,
+      "sd": 16.658,
+      "p10": 19.7,
+      "p25": 27.0,
+      "p50": 39.0,
+      "p75": 50.25,
+      "p90": 60.3,
+      "cutoff_pct": "75th",
+      "cutoff_value": 50.25
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 184,
+      "mean": 0.681,
+      "sd": 1.043,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 1.54,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 161,
+      "mean": 5.217,
+      "sd": 3.442,
+      "p10": 1.0,
+      "p25": 2.0,
+      "p50": 4.0,
+      "p75": 8.0,
+      "p90": 10.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 8.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 127,
+      "mean": 14.043,
+      "sd": 6.693,
+      "p10": 6.3,
+      "p25": 9.5,
+      "p50": 13.0,
+      "p75": 17.0,
+      "p90": 23.4,
+      "cutoff_pct": "75th",
+      "cutoff_value": 17.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 144,
+      "mean": 26.899,
+      "sd": 3.379,
+      "p10": 23.0,
+      "p25": 25.0,
+      "p50": 28.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "12": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 172,
+      "mean": 13.931,
+      "sd": 7.768,
+      "p10": 5.0,
+      "p25": 9.0,
+      "p50": 13.0,
+      "p75": 18.0,
+      "p90": 24.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 18.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 97,
+      "mean": 43.01,
+      "sd": 16.659,
+      "p10": 23.6,
+      "p25": 28.0,
+      "p50": 44.0,
+      "p75": 54.0,
+      "p90": 66.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 54.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 188,
+      "mean": 0.695,
+      "sd": 1.064,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 147,
+      "mean": 5.616,
+      "sd": 3.4,
+      "p10": 1.0,
+      "p25": 3.0,
+      "p50": 5.0,
+      "p75": 9.0,
+      "p90": 10.4,
+      "cutoff_pct": "75th",
+      "cutoff_value": 9.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 120,
+      "mean": 15.208,
+      "sd": 6.936,
+      "p10": 7.0,
+      "p25": 10.0,
+      "p50": 15.0,
+      "p75": 19.0,
+      "p90": 24.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 19.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 135,
+      "mean": 26.737,
+      "sd": 3.374,
+      "p10": 23.0,
+      "p25": 25.0,
+      "p50": 28.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.0
+    }
+  },
+  "13": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 161,
+      "mean": 14.987,
+      "sd": 7.837,
+      "p10": 5.0,
+      "p25": 9.0,
+      "p50": 14.0,
+      "p75": 21.0,
+      "p90": 25.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 21.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 55,
+      "mean": 42.609,
+      "sd": 17.094,
+      "p10": 24.4,
+      "p25": 29.0,
+      "p50": 42.0,
+      "p75": 54.0,
+      "p90": 63.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 54.0
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 179,
+      "mean": 0.677,
+      "sd": 1.054,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 2.2,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 139,
+      "mean": 5.968,
+      "sd": 3.565,
+      "p10": 1.0,
+      "p25": 3.0,
+      "p50": 5.0,
+      "p75": 9.0,
+      "p90": 11.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 9.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 108,
+      "mean": 16.523,
+      "sd": 7.526,
+      "p10": 7.7,
+      "p25": 10.0,
+      "p50": 16.5,
+      "p75": 21.0,
+      "p90": 26.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 21.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 127,
+      "mean": 26.661,
+      "sd": 3.801,
+      "p10": 23.0,
+      "p25": 25.25,
+      "p50": 28.0,
+      "p75": 29.5,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 25.25
+    }
+  },
+  "14": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 131,
+      "mean": 15.74,
+      "sd": 8.727,
+      "p10": 5.67,
+      "p25": 9.0,
+      "p50": 15.0,
+      "p75": 21.0,
+      "p90": 27.5,
+      "cutoff_pct": "75th",
+      "cutoff_value": 21.0
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 31,
+      "mean": 44.823,
+      "sd": 14.215,
+      "p10": 30.0,
+      "p25": 34.0,
+      "p50": 44.0,
+      "p75": 53.5,
+      "p90": 66.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 53.5
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 155,
+      "mean": 0.608,
+      "sd": 0.933,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.37,
+      "p75": 0.73,
+      "p90": 1.47,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.73
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 113,
+      "mean": 6.071,
+      "sd": 3.393,
+      "p10": 2.0,
+      "p25": 3.0,
+      "p50": 6.0,
+      "p75": 9.0,
+      "p90": 11.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 9.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 87,
+      "mean": 16.575,
+      "sd": 7.903,
+      "p10": 9.0,
+      "p25": 11.0,
+      "p50": 15.0,
+      "p75": 21.0,
+      "p90": 27.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 21.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 102,
+      "mean": 26.48,
+      "sd": 3.646,
+      "p10": 22.0,
+      "p25": 24.62,
+      "p50": 27.5,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 24.62
+    }
+  },
+  "15": {
+    "NP2PTOT": {
+      "label": "MDS-UPDRS Part II",
+      "n": 75,
+      "mean": 17.744,
+      "sd": 9.567,
+      "p10": 6.0,
+      "p25": 11.0,
+      "p50": 18.0,
+      "p75": 23.5,
+      "p90": 27.6,
+      "cutoff_pct": "75th",
+      "cutoff_value": 23.5
+    },
+    "NP3TOT_OFF_UNTREATED": {
+      "label": "MDS-UPDRS Part III (off)",
+      "n": 10,
+      "mean": 33.8,
+      "sd": 12.156,
+      "p10": 19.8,
+      "p25": 30.0,
+      "p50": 31.5,
+      "p75": 32.75,
+      "p90": 54.4,
+      "cutoff_pct": "75th",
+      "cutoff_value": 32.75
+    },
+    "pigd_td_ratio": {
+      "label": "PIGD/TD ratio (winsorized)",
+      "n": 88,
+      "mean": 0.569,
+      "sd": 0.852,
+      "p10": 0.0,
+      "p25": 0.0,
+      "p50": 0.31,
+      "p75": 0.65,
+      "p90": 1.47,
+      "cutoff_pct": "75th",
+      "cutoff_value": 0.65
+    },
+    "RBDSQ_13item": {
+      "label": "RBDSQ-13 total",
+      "n": 54,
+      "mean": 5.759,
+      "sd": 3.57,
+      "p10": 1.0,
+      "p25": 2.25,
+      "p50": 6.0,
+      "p75": 9.0,
+      "p90": 10.0,
+      "cutoff_pct": "75th",
+      "cutoff_value": 9.0
+    },
+    "SCAU_TOTAL": {
+      "label": "SCOPA-AUT total",
+      "n": 38,
+      "mean": 17.855,
+      "sd": 8.066,
+      "p10": 9.7,
+      "p25": 12.0,
+      "p50": 18.0,
+      "p75": 24.0,
+      "p90": 26.9,
+      "cutoff_pct": "75th",
+      "cutoff_value": 24.0
+    },
+    "MCATOT": {
+      "label": "MoCA total",
+      "n": 51,
+      "mean": 26.196,
+      "sd": 3.685,
+      "p10": 22.0,
+      "p25": 24.0,
+      "p50": 28.0,
+      "p75": 29.0,
+      "p90": 30.0,
+      "cutoff_pct": "25th",
+      "cutoff_value": 24.0
+    }
+  }
+};
+
+// Scales — column key on the REF object → display label & cutoff direction
+const SCALES = [
+  { col: "NP2PTOT",              label: "MDS-UPDRS II",        worst: "high" },
+  { col: "NP3TOT_OFF_UNTREATED", label: "MDS-UPDRS III (off)", worst: "high" },
+  { col: "pigd_td_ratio",        label: "PIGD/TD ratio",       worst: "high" },
+  { col: "RBDSQ_13item",         label: "RBDSQ-13",            worst: "high" },
+  { col: "SCAU_TOTAL",           label: "SCOPA-AUT",           worst: "high" },
+  { col: "MCATOT",               label: "MoCA",                worst: "low"  },
+];
+
+// =====================================================================
+// Helpers
+// =====================================================================
+function val(id) {
+  const el = document.getElementById(id);
+  if (!el || el.value === "") return null;
+  const n = parseFloat(el.value);
+  return Number.isFinite(n) ? n : null;
+}
+function setText(id, txt) { document.getElementById(id).textContent = txt; }
+
+// Approximate percentile rank from mean/SD (assuming roughly normal),
+// blended with empirical percentile breakpoints (p10..p90) for precision
+// near the tails. Returns 0-100.
+function percentileRank(x, stats) {
+  if (x === null) return null;
+  // Use empirical breakpoints first
+  const xs  = [stats.p10, stats.p25, stats.p50, stats.p75, stats.p90];
+  const pcs = [10,         25,         50,         75,         90];
+  if (x <= xs[0]) {
+    // extrapolate using normal CDF below p10
+    return normalPct(x, stats.mean, stats.sd);
+  }
+  if (x >= xs[4]) {
+    return normalPct(x, stats.mean, stats.sd);
+  }
+  // Linear interpolation between adjacent breakpoints
+  for (let i = 0; i < xs.length - 1; i++) {
+    if (x >= xs[i] && x <= xs[i+1]) {
+      const t = (x - xs[i]) / (xs[i+1] - xs[i]);
+      return pcs[i] + t * (pcs[i+1] - pcs[i]);
+    }
+  }
+  return null;
+}
+function normalPct(x, mean, sd) {
+  if (!sd) return null;
+  const z = (x - mean) / sd;
+  return 100 * (0.5 * (1 + erf(z / Math.SQRT2)));
+}
+// Abramowitz & Stegun approximation, max error 1.5e-7
+function erf(x) {
+  const sign = Math.sign(x); x = Math.abs(x);
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741,
+        a4=-1.453152027, a5=1.061405429, p=0.3275911;
+  const t = 1 / (1 + p * x);
+  const y = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t * Math.exp(-x*x);
+  return sign * y;
+}
+
+// =====================================================================
+// PIGD mode toggle
+// =====================================================================
+let pigdMode = "ratio";
+document.querySelectorAll("#pigdMode button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    pigdMode = btn.dataset.mode;
+    document.querySelectorAll("#pigdMode button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("pigdRatioMode").style.display     = pigdMode === "ratio"     ? "" : "none";
+    document.getElementById("pigdComponentMode").style.display = pigdMode === "components" ? "" : "none";
+    update();
+  });
+});
+function computePigdRatio() {
+  if (pigdMode === "ratio") return val("pigdRatio");
+  const pigd = val("pigdRaw"), td = val("tdRaw");
+  if (pigd === null || td === null) return null;
+  if (td <= 0 && pigd > 0)  return 4.40;   // winsorize when denominator is 0
+  if (td <= 0 && pigd === 0) return 0;
+  const ratio = pigd / td;
+  return Math.min(ratio, 4.40);            // winsorize at PD-baseline P99
+}
+
+// =====================================================================
+// Main update
+// =====================================================================
+function update() {
+  const year = String(parseInt(document.getElementById("year").value, 10));
+  const ref = REF[year];
+  if (!ref) return;
+
+  // Gather raw inputs into a {col → value} map
+  const raw = {
+    NP2PTOT:              val("np2"),
+    NP3TOT_OFF_UNTREATED: val("np3off"),
+    pigd_td_ratio:        computePigdRatio(),
+    RBDSQ_13item:         val("rbd"),
+    SCAU_TOTAL:           val("scopa"),
+    MCATOT:               val("moca"),
+  };
+
+  // Build breakdown rows
+  const bd = document.getElementById("breakdown");
+  bd.innerHTML = "";
+  let nNonMotorWorst = 0;
+  let allNonMotorPresent = true;
+  for (const s of SCALES) {
+    if (s.col === "NP2PTOT" || s.col === "NP3TOT_OFF_UNTREATED"
+        || s.col === "pigd_td_ratio") continue;   // motor handled below
+    const x = raw[s.col]; const stats = ref[s.col];
+    let pct = (x !== null && stats) ? percentileRank(x, stats) : null;
+    let isWorst = false;
+    if (pct !== null) {
+      isWorst = s.worst === "high" ? (x > stats.cutoff_value)
+                                    : (x < stats.cutoff_value);
+    } else {
+      allNonMotorPresent = false;
+    }
+    if (isWorst) nNonMotorWorst++;
+    bd.appendChild(makeRow(s.label, x, pct, stats, s.worst, isWorst));
+  }
+
+  // ----- Motor composite -----
+  const motorVals = ["NP2PTOT", "NP3TOT_OFF_UNTREATED", "pigd_td_ratio"];
+  let zSum = 0, zN = 0;
+  for (const c of motorVals) {
+    const x = raw[c], st = ref[c];
+    if (x === null || !st || !st.sd) continue;
+    zSum += (x - st.mean) / st.sd;
+    zN++;
+  }
+  const motorZ = zN === 3 ? zSum / 3 : null;
+  // Year-specific composite z 75th percentile threshold — we don't have it
+  // pre-computed per year so we approximate using the linear-pct-rank of the
+  // composite by computing what fraction of patients exceed this z. Closed-form
+  // we use the cutoffs already in the existing analysis. The exact composite z
+  // 75th threshold is loaded below (hardcoded per year, source: data/04_cutoffs.csv).
+  const Z75 = {"1": 0.337, "2": 0.301, "3": 0.314, "4": 0.249, "5": 0.15, "6": 0.113, "7": 0.067, "8": 0.022, "9": 0.022, "10": 0.005, "11": 0.006, "12": -0.132, "13": -0.227, "14": -0.227, "15": -0.227};
+  const motorCut = Z75[year] ?? null;
+  const isWorstMotor = (motorZ !== null && motorCut !== null) ? (motorZ > motorCut) : null;
+
+  setText("motorZ",  motorZ  === null ? "—" : motorZ.toFixed(2));
+  setText("motorCut", motorCut === null ? "—" : motorCut.toFixed(2));
+  setText("worstMotor", isWorstMotor === null ? "—" : (isWorstMotor ? "YES" : "no"));
+  document.getElementById("compositeBox").classList.toggle("worst", isWorstMotor === true);
+
+  // ----- Subtype -----
+  let subtype = "NA", expand = "Enter all six values to compute subtype";
+  if (motorZ !== null && allNonMotorPresent) {
+    if (isWorstMotor && nNonMotorWorst >= 1)          subtype = "DM";
+    else if (nNonMotorWorst === 3)                     subtype = "DM";
+    else if (!isWorstMotor && nNonMotorWorst === 0)   subtype = "MMP";
+    else                                                subtype = "IM";
+    expand = ({DM: "Diffuse Malignant Parkinson's Disease",
+                IM: "Intermediate Parkinson's Disease",
+                MMP:"Mild Motor-Predominant Parkinson's Disease"})[subtype];
+  }
+  const sb = document.getElementById("subtypeBox");
+  sb.className = "subtype-box subtype-" + subtype;
+  setText("subtypeValue", subtype === "NA" ? "—" : subtype + "-PD");
+  setText("subtypeExpand", expand);
+
+  // ----- Warnings -----
+  const warn = document.getElementById("warnings"); warn.innerHTML = "";
+  if (parseInt(year) > 5) {
+    warn.innerHTML = '<div class="warning"><b>Note:</b> beyond year 5, the within-year ' +
+      'sample size shrinks substantially (Y6 N=207 down to Y15 N≈8). ' +
+      'Percentile thresholds at later years are noisier.</div>';
+  }
+}
+
+function makeRow(label, x, pct, stats, worstDir, isWorst) {
+  const div = document.createElement("div"); div.className = "channel";
+  if (x === null) {
+    div.innerHTML = `
+      <div class="name">${label}</div>
+      <div class="bar-wrap"></div>
+      <div class="pct">—</div>
+      <div class="flag">missing</div>`;
+    return div;
+  }
+  const cutoffPct = worstDir === "high" ? 75 : 25;
+  const barPct = Math.max(0, Math.min(100, pct));
+  // bar color: above threshold → red, otherwise blue. For MoCA, "below"=red.
+  const barClass = isWorst ? "bar over" : "bar";
+  const cutoffLeft = cutoffPct + "%";
+  div.innerHTML = `
+    <div class="name">${label}</div>
+    <div class="bar-wrap">
+      <div class="${barClass}" style="width: ${barPct}%"></div>
+      <div class="cutoff-marker" style="left: ${cutoffLeft}"></div>
+    </div>
+    <div class="pct">${pct.toFixed(0)}th pct
+      <span style="color:#95A0AD; font-size:11px">| raw ${x}</span>
+    </div>
+    <div class="flag ${isWorst ? 'worst' : ''}">${isWorst ? 'WORST' : 'normal'}</div>`;
+  return div;
+}
+
+// Wire up listeners
+["year","np2","np3off","pigdRatio","pigdRaw","tdRaw","rbd","scopa","moca"]
+  .forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", update);
+  });
+update();
+</script>
+
+</body>
+</html>
