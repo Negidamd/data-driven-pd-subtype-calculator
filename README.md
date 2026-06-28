@@ -1,5 +1,7 @@
 # Data-Driven PD Subtype Calculator
 
+> **Scope:** the calculator covers **years 1–5 since PD diagnosis only**. Beyond year 5 the within-disease-year PPMI sample becomes too small for stable percentile thresholds, so later years are intentionally excluded.
+
 Interactive web tool to assign Parkinson's disease subtypes (DM-PD / IM-PD / MMP-PD) using **disease-duration–specific percentile thresholds** derived from the PPMI April-2026 cohort (N = 1,030 de novo idiopathic PD).
 
 The tool implements the Fereshtehnejad 2017 (*Brain*) DM/MMP/IM rule with **year-by-year percentile cutoffs** rather than fixed baseline thresholds, so a patient's classification reflects how they compare to other patients **at the same disease duration**.
@@ -14,7 +16,7 @@ The tool implements the Fereshtehnejad 2017 (*Brain*) DM/MMP/IM rule with **year
 
 | Field | Range | Notes |
 |---|---|---|
-| Years since PD diagnosis | 1 to 15 | integer (round down) |
+| Years since PD diagnosis | 1 to 5 | integer (round down) |
 | MDS-UPDRS Part II total | 0 to 52 | patient-reported motor ADL |
 | MDS-UPDRS Part III off-medication total | 0 to 132 | OFF-state, or any visit while untreated |
 | PIGD/TD ratio | 0 to 4.40 | Stebbins 2013; tool offers ratio-direct OR raw-items computation with winsorization |
