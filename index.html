@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Data-Driven PD Subtype Calculator — Disease-Duration Percentiles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&family=Merriweather:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#129504;</text></svg>">
 <style>
   :root {
     --dm:      #E63946;
@@ -15,18 +19,32 @@
     --border:  #E1E5EA;
     --ink:     #1F2A36;
     --muted:   #6B7785;
+    --accent:  #005ea2;
+    --navy:    #162e51;
+    --navy2:   #1a4480;
+    --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --font-serif: 'Merriweather', Georgia, 'Times New Roman', serif;
   }
   * { box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    font-family: var(--font-sans);
     background: var(--bg); color: var(--ink); margin: 0; padding: 0;
     line-height: 1.5;
   }
+  /* Shared site nav (matches negidamd.github.io) */
+  .topnav { background: var(--navy); }
+  .topnav-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; height: 52px;
+                  display: flex; align-items: center; gap: 1.25rem; }
+  .topnav a.brand { color: #fff; font-weight: 800; text-decoration: none; font-size: 1rem; }
+  .topnav a.brand span { color: #73b3e7; }
+  .topnav .links { margin-left: auto; display: flex; gap: 1.25rem; }
+  .topnav .links a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+  .topnav .links a:hover { color: #fff; }
   header {
-    background: linear-gradient(135deg, #2E3B4E 0%, #1F2A36 100%);
-    color: #fff; padding: 28px 36px; border-bottom: 4px solid var(--mmp);
+    background: linear-gradient(135deg, var(--navy2) 0%, var(--navy) 100%);
+    color: #fff; padding: 28px 36px; border-bottom: 4px solid var(--accent);
   }
-  header h1 { margin: 0 0 4px; font-size: 24px; font-weight: 600; }
+  header h1 { margin: 0 0 4px; font-size: 26px; font-weight: 900; font-family: var(--font-serif); letter-spacing: -0.01em; }
   header .sub { font-size: 13px; opacity: 0.85; }
   main { max-width: 1100px; margin: 24px auto; padding: 0 24px; }
   .layout { display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 24px; }
@@ -46,7 +64,7 @@
     background: #fff; transition: border-color 0.15s;
   }
   input[type="number"]:focus, select:focus {
-    outline: none; border-color: var(--mmp); box-shadow: 0 0 0 3px rgba(46,179,70,0.12);
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,94,162,0.15);
   }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
@@ -174,7 +192,7 @@
     margin-top: 32px; padding: 20px 0 40px; font-size: 12px; color: var(--muted);
     text-align: center; line-height: 1.7;
   }
-  .footer-info a { color: var(--mmp); text-decoration: none; }
+  .footer-info a { color: var(--accent); text-decoration: none; }
   .footer-info a:hover { text-decoration: underline; }
   .citation { display: block; font-size: 11px; margin-top: 6px; }
 
@@ -186,6 +204,16 @@
 </style>
 </head>
 <body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a class="brand" href="https://negidamd.github.io/">Ahmed <span>Negida</span></a>
+    <div class="links">
+      <a href="https://negidamd.github.io/pd-subtyping.html">&larr; PD Subtyping</a>
+      <a href="https://negidamd.github.io/">Main site</a>
+    </div>
+  </div>
+</nav>
 
 <header>
   <h1>Data-Driven PD Subtype Calculator</h1>
