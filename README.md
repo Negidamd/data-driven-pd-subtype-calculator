@@ -7,8 +7,8 @@ Interactive web tool to assign Parkinson's disease subtypes (DM-PD / IM-PD / MMP
 The tool implements the Fereshtehnejad 2017 (*Brain*) DM/MMP/IM rule with **year-by-year percentile cutoffs** rather than fixed baseline thresholds, so a patient's classification reflects how they compare to other patients **at the same disease duration**.
 
 **Live demo:** https://negidamd.github.io/data-driven-pd-subtype-calculator/
-**Source:** https://github.com/negidamd/data-driven-pd-subtype-calculator
-**Reference:** Negida et al., *Movement Disorders Clinical Practice*, 2026 (in revision).
+**Source:** https://github.com/Negidamd/data-driven-pd-subtype-calculator
+**Reference:** Negida A, Mukhopadhyay N, Berman BD, Fereshtehnejad SM, Barrett MJ. Disease-Duration–Specific Percentiles for Prospective Subtyping of Parkinson's Disease: A PPMI-Based Study. *Mov Disord Clin Pract*. 2026. doi:[10.1002/mdc3.70740](https://doi.org/10.1002/mdc3.70740) · PMID: 42427169
 
 ---
 
@@ -62,9 +62,9 @@ The Fereshtehnejad 2017 assignment rule then becomes:
 
 ```bash
 # Create a new public repository on GitHub:
-#   github.com/negidamd/data-driven-pd-subtype-calculator
+#   github.com/Negidamd/data-driven-pd-subtype-calculator
 git init
-git remote add origin https://github.com/negidamd/data-driven-pd-subtype-calculator.git
+git remote add origin https://github.com/Negidamd/data-driven-pd-subtype-calculator.git
 git add index.html README.md T_reference_percentiles.csv T_reference_percentiles.json T4_cutoffs_and_assignment_rules.csv
 git commit -m "Initial release — data-driven PD subtype calculator v1.0"
 git branch -M main
@@ -92,7 +92,7 @@ The HTML is **fully self-contained** (no external dependencies, no build step, n
 
 If you use this tool in research, please cite:
 
-> Negida A, Mukhopadhyay N, Berman BD. Disease-Duration–Specific Percentiles for Prospective Subtyping of Parkinson's Disease: A PPMI-Based Study. *Movement Disorders Clinical Practice*. 2026 (in revision).
+> Negida A, Mukhopadhyay N, Berman BD, Fereshtehnejad SM, Barrett MJ. Disease-Duration–Specific Percentiles for Prospective Subtyping of Parkinson's Disease: A PPMI-Based Study. *Movement Disorders Clinical Practice*. 2026. doi:[10.1002/mdc3.70740](https://doi.org/10.1002/mdc3.70740). PMID: 42427169.
 
 and the source methodological framework:
 
