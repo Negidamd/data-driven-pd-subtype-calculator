@@ -48,15 +48,15 @@ The motor composite is:
 motor_z_composite = (z_NP2 + z_NP3off + z_pigd_td) / 3
 ```
 
-A patient is classified as **worst-motor** if `motor_z_composite > year-specific 75th-percentile threshold`. Non-motor "worst" channels are determined by direct percentile comparison: RBDSQ > P75, SCOPA-AUT > P75, MoCA < P25 (lower = worse).
+A patient is classified as **worst-motor** if `motor_z_composite > year-specific 75th-percentile threshold`. Non-motor "worst" channels are determined by direct percentile comparison: RBDSQ > P75, SCOPA-AUT > P75, MoCA < P25 (lower = worse). A score is **favorable** when it is strictly on the other side of its threshold (below P75; MoCA above P25); a score exactly at its threshold is neither worst nor favorable.
 
 The Fereshtehnejad 2017 assignment rule then becomes:
 
 | Subtype | Rule |
 |---|---|
 | **DM-PD** | worst-motor AND ≥ 1 non-motor worst, OR all 3 non-motor worst |
-| **MMP-PD** | not worst-motor AND 0 non-motor worst |
-| **IM-PD** | anything else |
+| **MMP-PD** | motor composite AND all 3 non-motor scores favorable (strictly below threshold; MoCA above) |
+| **IM-PD** | anything else, including a score exactly at its threshold (unless DM-PD) |
 
 ## Deployment to GitHub Pages
 

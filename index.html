@@ -360,8 +360,8 @@
   <div class="rules-box">
     <div class="title">Fereshtehnejad 2017 assignment rule (year-specific)</div>
     <div class="rule"><b>DM-PD</b> = worst-motor AND ≥ 1 non-motor worst, OR all 3 non-motor worst</div>
-    <div class="rule"><b>MMP-PD</b> = not worst-motor AND 0 non-motor worst</div>
-    <div class="rule"><b>IM-PD</b> = everything else</div>
+    <div class="rule"><b>MMP-PD</b> = motor composite and all 3 non-motor scores below their thresholds (MoCA above)</div>
+    <div class="rule"><b>IM-PD</b> = everything else, including any score exactly at its threshold (unless DM-PD)</div>
   </div>
 
   <div id="warnings"></div>
@@ -906,22 +906,24 @@ function update() {
   // Build breakdown rows
   const bd = document.getElementById("breakdown");
   bd.innerHTML = "";
-  let nNonMotorWorst = 0;
+  let nNonMotorWorst = 0, nNonMotorFavorable = 0;
   let allNonMotorPresent = true;
   for (const s of SCALES) {
     if (s.col === "NP2PTOT" || s.col === "NP3TOT_OFF_UNTREATED"
         || s.col === "pigd_td_ratio") continue;   // motor handled below
     const x = raw[s.col]; const stats = ref[s.col];
     let pct = (x !== null && stats) ? percentileRank(x, stats) : null;
-    let isWorst = false;
+    let isWorst = false, isFavorable = false;
     if (pct !== null) {
-      isWorst = s.worst === "high" ? (x > stats.cutoff_value)
-                                    : (x < stats.cutoff_value);
+      isWorst     = s.worst === "high" ? (x > stats.cutoff_value) : (x < stats.cutoff_value);
+      isFavorable = s.worst === "high" ? (x < stats.cutoff_value) : (x > stats.cutoff_value);
     } else {
       allNonMotorPresent = false;
     }
     if (isWorst) nNonMotorWorst++;
-    bd.appendChild(makeRow(s.label, x, pct, stats, s.worst, isWorst));
+    if (isFavorable) nNonMotorFavorable++;
+    // a score equal to its threshold is neither worst nor favorable
+    bd.appendChild(makeRow(s.label, x, pct, stats, s.worst, isWorst, !isWorst && !isFavorable));
   }
 
   // ----- Motor composite -----
@@ -940,6 +942,7 @@ function update() {
   const Z75 = {"1": 0.426, "2": 0.376, "3": 0.381, "4": 0.395, "5": 0.428};
   const motorCut = Z75[year] ?? null;
   const isWorstMotor = (motorZ !== null && motorCut !== null) ? (motorZ > motorCut) : null;
+  const isFavorableMotor = (motorZ !== null && motorCut !== null) ? (motorZ < motorCut) : null;
 
   setText("motorZ",  motorZ  === null ? "—" : motorZ.toFixed(2));
   setText("motorCut", motorCut === null ? "—" : motorCut.toFixed(2));
@@ -951,7 +954,7 @@ function update() {
   if (motorZ !== null && allNonMotorPresent) {
     if (isWorstMotor && nNonMotorWorst >= 1)          subtype = "DM";
     else if (nNonMotorWorst === 3)                     subtype = "DM";
-    else if (!isWorstMotor && nNonMotorWorst === 0)   subtype = "MMP";
+    else if (isFavorableMotor && nNonMotorFavorable === 3) subtype = "MMP";
     else                                                subtype = "IM";
     expand = ({DM: "Diffuse Malignant Parkinson's Disease",
                 IM: "Intermediate Parkinson's Disease",
@@ -966,7 +969,7 @@ function update() {
   const warn = document.getElementById("warnings"); warn.innerHTML = "";
 }
 
-function makeRow(label, x, pct, stats, worstDir, isWorst) {
+function makeRow(label, x, pct, stats, worstDir, isWorst, atCutoff = false) {
   const div = document.createElement("div"); div.className = "channel";
   if (x === null) {
     div.innerHTML = `
@@ -990,7 +993,7 @@ function makeRow(label, x, pct, stats, worstDir, isWorst) {
     <div class="pct">${pct.toFixed(0)}th pct
       <span style="color:#95A0AD; font-size:11px">| raw ${x}</span>
     </div>
-    <div class="flag ${isWorst ? 'worst' : ''}">${isWorst ? 'WORST' : 'normal'}</div>`;
+    <div class="flag ${isWorst ? 'worst' : ''}">${isWorst ? 'WORST' : (atCutoff ? 'at cutoff' : 'normal')}</div>`;
   return div;
 }
 
