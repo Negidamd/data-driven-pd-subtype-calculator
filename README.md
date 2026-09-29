@@ -19,7 +19,7 @@ The tool implements the Fereshtehnejad 2017 (*Brain*) DM/MMP/IM rule with **year
 | Years since PD diagnosis | 1 to 5 | integer (round down) |
 | MDS-UPDRS Part II total | 0 to 52 | patient-reported motor ADL |
 | MDS-UPDRS Part III off-medication total | 0 to 132 | OFF-state, or any visit while untreated |
-| PIGD/TD ratio | 0 to 4.40 | Stebbins 2013; tool offers ratio-direct OR raw-items computation with winsorization |
+| PIGD/TD ratio | 0 to 4.40 | Stebbins 2013, from OFF-medication or untreated items at the same visit; tool offers ratio-direct OR raw-items computation with winsorization |
 | RBDSQ-13 total | 0 to 13 | 13-item REM Sleep Behavior Disorder Screening Questionnaire |
 | SCOPA-AUT total | 0 to 69 | autonomic symptom burden |
 | MoCA total | 0 to 30 | global cognition (lower = worse) |
@@ -85,7 +85,7 @@ The HTML is **fully self-contained** (no external dependencies, no build step, n
 | `index.html` | The interactive calculator (self-contained, ~45 KB) |
 | `T_reference_percentiles.csv` | Per-year statistics for each subtyping scale (mean, SD, percentiles, cutoffs) |
 | `T_reference_percentiles.json` | Same data in nested JSON |
-| `T4_cutoffs_and_assignment_rules.csv` | Year 1–5 cutoffs from the published Table 4 |
+| `T4_cutoffs_and_assignment_rules.csv` | Year 1–5 cutoffs (75th/25th percentiles and motor composite threshold) |
 | `README.md` | This file |
 
 ## Citation

@@ -28,16 +28,16 @@
     },
     "pigd_td_ratio": {
       "label": "PIGD/TD ratio (winsorized)",
-      "n": 815,
-      "mean": 0.863,
-      "sd": 1.219,
+      "n": 771,
+      "mean": 0.909,
+      "sd": 1.144,
       "p10": 0.0,
-      "p25": 0.0,
-      "p50": 0.44,
-      "p75": 0.88,
-      "p90": 2.2,
+      "p25": 0.183,
+      "p50": 0.488,
+      "p75": 1.1,
+      "p90": 2.75,
       "cutoff_pct": "75th",
-      "cutoff_value": 0.88
+      "cutoff_value": 1.1
     },
     "RBDSQ_13item": {
       "label": "RBDSQ-13 total",
@@ -108,16 +108,16 @@
     },
     "pigd_td_ratio": {
       "label": "PIGD/TD ratio (winsorized)",
-      "n": 938,
-      "mean": 0.827,
-      "sd": 1.167,
+      "n": 839,
+      "mean": 0.904,
+      "sd": 1.1,
       "p10": 0.0,
-      "p25": 0.0,
-      "p50": 0.44,
-      "p75": 0.88,
-      "p90": 2.2,
+      "p25": 0.21,
+      "p50": 0.471,
+      "p75": 1.1,
+      "p90": 2.51,
       "cutoff_pct": "75th",
-      "cutoff_value": 0.88
+      "cutoff_value": 1.1
     },
     "RBDSQ_13item": {
       "label": "RBDSQ-13 total",
@@ -188,16 +188,16 @@
     },
     "pigd_td_ratio": {
       "label": "PIGD/TD ratio (winsorized)",
-      "n": 909,
-      "mean": 0.816,
-      "sd": 1.161,
+      "n": 746,
+      "mean": 0.922,
+      "sd": 1.173,
       "p10": 0.0,
-      "p25": 0.0,
-      "p50": 0.4,
-      "p75": 0.88,
-      "p90": 2.2,
+      "p25": 0.205,
+      "p50": 0.458,
+      "p75": 1.1,
+      "p90": 2.567,
       "cutoff_pct": "75th",
-      "cutoff_value": 0.88
+      "cutoff_value": 1.1
     },
     "RBDSQ_13item": {
       "label": "RBDSQ-13 total",
@@ -268,16 +268,16 @@
     },
     "pigd_td_ratio": {
       "label": "PIGD/TD ratio (winsorized)",
-      "n": 747,
-      "mean": 0.802,
-      "sd": 1.159,
+      "n": 550,
+      "mean": 1.035,
+      "sd": 1.349,
       "p10": 0.0,
-      "p25": 0.0,
-      "p50": 0.37,
-      "p75": 0.88,
-      "p90": 2.2,
+      "p25": 0.201,
+      "p50": 0.44,
+      "p75": 1.1,
+      "p90": 4.4,
       "cutoff_pct": "75th",
-      "cutoff_value": 0.88
+      "cutoff_value": 1.1
     },
     "RBDSQ_13item": {
       "label": "RBDSQ-13 total",
@@ -348,16 +348,16 @@
     },
     "pigd_td_ratio": {
       "label": "PIGD/TD ratio (winsorized)",
-      "n": 517,
-      "mean": 0.777,
-      "sd": 1.168,
+      "n": 365,
+      "mean": 1.048,
+      "sd": 1.304,
       "p10": 0.0,
-      "p25": 0.0,
-      "p50": 0.37,
-      "p75": 0.82,
-      "p90": 2.2,
+      "p25": 0.267,
+      "p50": 0.489,
+      "p75": 1.15,
+      "p90": 3.41,
       "cutoff_pct": "75th",
-      "cutoff_value": 0.82
+      "cutoff_value": 1.15
     },
     "RBDSQ_13item": {
       "label": "RBDSQ-13 total",
