@@ -108,7 +108,7 @@ MIT License. PPMI reference data are derived from the publicly accessible Parkin
 
 ## Contact
 
-Ahmed Negida, MD, PhD
+Ahmed Negida, MBBCh, PhD
 Department of Neurology, Parkinson & Movement Disorder Center
 Virginia Commonwealth University, Richmond, VA
 Email: ahmed.negida@vcuhealth.org · ORCID: 0000-0001-5363-6369
